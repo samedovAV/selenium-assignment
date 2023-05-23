@@ -1,9 +1,3 @@
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Properties;
-import java.util.UUID;
-
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.After;
 import org.junit.Before;
@@ -12,11 +6,16 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import pages.LoginPage;
+import pages.NewsPage;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
-public class LoginTest {
+public class NewsTest  {
 
     private WebDriver driver;
     private Properties properties;
@@ -52,46 +51,28 @@ public class LoginTest {
     }
 
     @Test
-    public void testLogin() {
+    public void testCreatePost() {
         LoginPage loginPage = new LoginPage(driver);
-        loginPage.setPhoneOrEmailElement(properties.getProperty("testlogin"));
-        loginPage.submitLoginForm();
+        login(loginPage);
 
-        loginPage.setPasswordElement(properties.getProperty("testpassword"));
-        loginPage.submitPasswordForm();
+        NewsPage newsPage = new NewsPage(driver);
+        newsPage.openArticleElement();
+        newsPage.setArticleElement("New Post!");
 
-        WebElement myProfile = loginPage.getMyProfileElement();
+        newsPage.hoverToAttachFile();
+        newsPage.attachFile();
+        newsPage.submitArticleForm();
 
-        assertEquals("Моя страница", myProfile.getText());
+        WebElement newPost = newsPage.getNewPost();
+
+        assertEquals("New Post!", newPost.getText());
     }
 
-    @Test
-    public void testLoginWithRandomData() {
-        LoginPage loginPage = new LoginPage(driver);
+    private void login(LoginPage loginPage) {
         loginPage.setPhoneOrEmailElement(properties.getProperty("testlogin"));
         loginPage.submitLoginForm();
-
-        loginPage.setPasswordElement(UUID.randomUUID().toString()); // random data
-        loginPage.submitPasswordForm();
-
-        WebElement error = loginPage.getError();
-
-        assertEquals("Incorrect password", error.getText());
-    }
-
-    @Test
-    public void testLogout() {
-        LoginPage loginPage = new LoginPage(driver);
-        loginPage.setPhoneOrEmailElement(properties.getProperty("testlogin"));
-        loginPage.submitLoginForm();
-
         loginPage.setPasswordElement(properties.getProperty("testpassword"));
         loginPage.submitPasswordForm();
-
-        loginPage.openHeaderPopup();
-        loginPage.logout();
-
-        assertNotNull(loginPage.getPhoneOrEmailElement());
     }
 
     @After
